@@ -90,6 +90,7 @@ class PipeLine(object):
         """ Loop through dataframe and write submitfile for each exposures"""
         # Updating args for each row
         default_submit_site = self.args.target_site
+        
         for name, group in self.args.dataframe.groupby(by=groupby, sort=False):
             # Setting jira parameters
             self.args.reqnum, self.args.jira_parent= group['reqnum'].unique()[0],group['jira_parent'].unique()[0]
@@ -146,6 +147,7 @@ class PipeLine(object):
             output_path = os.path.join(self.args.output_dir,output_name)
             self.args.submitfile = output_path 
             # Writing template
+            print(self.args.submit_template_path)
             if self.args.ignore_processed:
                 if self.args.cur.check_submitted(self.args.unitname,self.args.reqnum):
                     continue
@@ -424,7 +426,7 @@ class WideField(PipeLine):
             self.args.desstat_pipeline = "finalcut" 
 
         super(WideField,self).update_args(self.args)
-        self.args.output_name_keys = ['nite','expnum','band']
+        self.args.output_name_keys = ['nite','expnum','band','filename']
         self.args.cur = pipequery.WideField(self.args.db_section)
         if not self.args.propid:
             self.args.propid = self.args.cur.get_propids()
@@ -445,7 +447,7 @@ class WideField(PipeLine):
             except:
                 print("{time}: No exposures found!".format(time=datetime.datetime.now()))
                 sys.exit(0)
-
+            
             if self.args.resubmit_failed:
                 self.args.reqnum = jira_utils.get_reqnum_from_nite(self.args.jira_parent,
                                                                    self.args.nite)
@@ -497,12 +499,12 @@ class WideField(PipeLine):
             self.args.dataframe = self.args.dataframe[~self.args.dataframe.expnum.isin(self.args.exclude_list)]
         
         # Update dataframe for each exposure and add band,nite if not exists
-        try:
-            self.args.dataframe = self.args.cur.update_df(self.args.dataframe)
-            self.args.dataframe = self.args.dataframe.fillna(False)
-        except: 
-            pass
-
+ #       try:
+        self.args.dataframe = self.args.cur.update_df(self.args)
+        self.args.dataframe = self.args.dataframe.fillna(False)
+#        except: 
+#            pass
+        exit()
         #try:
         #    if not self.args.dataframe:
         #        print( "No new exposures found in DB!")
@@ -523,6 +525,7 @@ class WideField(PipeLine):
         if self.args.auto:
             self.args.dataframe = pd.merge(self.args.dataframe, p_tab, on=['expnum'], how='inner')
 
+        print(self.args.dataframe)
 
 class NitelyCal(PipeLine):
 

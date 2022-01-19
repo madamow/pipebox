@@ -137,15 +137,16 @@ def print_submit_info(pipeline,site=None,eups_stack=None,submit_file=None):
         print("\t voms-proxy-info --all")
 
 def stop_if_already_running(script_name):
+    pass
     """ Exits program if program is already running """
-    ps_out = Popen("ps aux | grep -e '%s' | grep -v grep | grep -v vim | grep $USER | awk '{print $2}'" % script_name)
-    l = ps_out.communicate()[0]
-    print(l)
-    exit()
-    if l[1]:
-        print("Already running.  Aborting")
-        print(l[1])
-        sys.exit(0)
+    #ps_out = Popen("ps aux | grep -e '%s' | grep -v grep | grep -v vim | grep $USER | awk '{print $2}'" % script_name)
+    #l = ps_out.communicate()[0]
+   # print(l)
+   # exit()
+   # if l[1]:
+   #     print("Already running.  Aborting")
+   # #    print(l[1])
+   #     sys.exit(0)
 
 def rename_file(args):
     """ Rename submitfile with attempt number."""
