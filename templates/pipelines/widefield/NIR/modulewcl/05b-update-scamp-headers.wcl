@@ -26,17 +26,17 @@
                 flabel = pixcor
                 fsuffix = fits
                 ops_enddir = red/pixcor
-                rundir = red/pixcor
+                rundir = red/nir_rehab
             </red_pixcor>
             <red_wcs>
                 dirpat = se
                 filepat = ccdnum_band
-                filetype = red_wcs
-                flabel = wcs
+                filetype = red_immask
+                flabel = immasked
                 fsuffix = fits
-                ops_enddir = red/wcs
-                rundir = red/wcs
-                savefiles = false
+                ops_enddir = red/immask
+                rundir = red/immask
+                savefiles = true
             </red_wcs>
             <scamp_cat>
                 dirpat = se

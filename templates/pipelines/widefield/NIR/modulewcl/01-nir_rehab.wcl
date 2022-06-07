@@ -1,56 +1,43 @@
 <module>
-    <crosstalk-sci>
+    <nir-rehab>
         wrappername = genwrap.py
         modnamepat=${modnamepat_expband}
-        loopobj = file.raw
-
         <file>
-            <raw>
-	        filetype = raw
-                filename = ${filename}
-                dirpat = raw
-                rundir = raw
-            </raw>
-            <xtalkcoeff>
-                filetype = config
-                filename = ${xtalkcoefffile}
-                dirpat = se
-                rundir = config
-            </xtalkcoeff>
-            <red_xtalked>
-                filetype = xtalked_sci
+            <file1>
+	        filetype = nir_paw
+                filename = ${nirfilename}_st.fit
+                dirpat = nir_paw
+                rundir = nir_paw
+            </file1>
+            <file2>
+                filetype = nir_paw_conf
+                filename = ${nirfilename}_st_conf.fit
+                dirpat = nir_paw_conf
+                rundir = nir_paw_conf
+            </file2>
+            <nir_output>
+                filetype = red_pixcor
                 filepat = ccdnum_band
-        		flabel = scix
+        		flabel = pixcor
                 fsuffix = fits
                 dirpat = se
-                ops_enddir = red/xtalk
-                rundir = red/xtalk
-                savefiles = false
-            </red_xtalked>
-	        <hupdate>
-        		filetype = config
-                filename = ${hupdatefile}
-                dirpat = se
-                rundir = config
-	        </hupdate>
+                ops_enddir = red/nir_rehab
+                rundir = red/nir_rehab
+                savefiles = true
+            </nir_output>
         </file>
         <exec_1>
-            execname = DECam_crosstalk
-            used = file.raw, file.xtalkcoeff,file.hupdate
-            was_generated_by = file.red_xtalked
-            ancestry = file.raw:file.red_xtalked, file.xtalkcoeff:file.red_xtalked,file.hupdate:file.red_xtalked
+            execname = nir_rehab
+            used = file.file1, file.file2
+            was_generated_by = file.nir_output
+            ancestry = file.file1:file.nir_output, file.file2:file.nir_output
             <cmdline>
-                _01_raw = ${file.raw.fullname}
-                _02_red_xtalked = red/xtalk/${camsym}${expnum:8}_${band}_c%02d_r${reqnum}p${attnum:2}_scix.fits 
-                crosstalk = ${file.xtalkcoeff.fullname}
-                overscansample = 1
-                overscanfunction = 0
-                overscantrim = 5
-		        replace = ${file.hupdate.fullname}
-                verbose = 3
-                photflag = ${photflagvar}
-		        ccdlist = ${ccdnum}
+                -nir_paw_image = ${file.file1.fullname}
+                -nir_paw_conf = ${file.file2.fullname} 
+                -output_template = red/nir_rehab/${camsym}${expnum:8}_${band}_c%%02d_r${reqnum}p${attnum:2}_pixcor.fits
+		        #replace = ${file.hupdate.fullname}
+                v = 2
             </cmdline>
         </exec_1>
-    </crosstalk-sci>
+    </nir-rehab>
 </module>

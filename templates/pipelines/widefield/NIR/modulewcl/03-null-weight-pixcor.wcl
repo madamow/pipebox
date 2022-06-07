@@ -15,7 +15,7 @@
 
                 # where to put the file
                 dirpat = se
-                rundir = red/pixcor
+                rundir = red/nir_rehab
             </red_pixcor>
             <red_nullweight_pixcor>
                 # what metadata to get
@@ -28,8 +28,8 @@
 
                 # where to put the file
                 dirpat = se
-                ops_enddir = red/pixcor
-                rundir = red/pixcor
+                ops_enddir = red/nir_rehab
+                rundir = red/nir_rehab
                 savefiles = false
                 compress_files = true
             </red_nullweight_pixcor>

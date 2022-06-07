@@ -455,7 +455,7 @@ class WideField(PipeQuery):
         for index,row in df.iterrows():
             if args.campaign == 'NIR':
                 print("Checking the NIR_PAW table")
-                expnum_info = "select distinct expnum, band, nite, obstype,filename from nir_paw where expnum='%s'" % row['expnum']
+                expnum_info = "select distinct expnum, band, nite, obstype,filename from nir_paw where obstype='object' and expnum='%s'" % row['expnum']
             else:
                 expnum_info = "select distinct expnum, band, nite, obstype,filename from exposure where expnum='%s'" % row['expnum']
             self.cur.execute(expnum_info)

@@ -124,6 +124,11 @@ class PipeLine(object):
             # Adding column values to args
             for c in columns:
                 setattr(self.args,c, group[c].unique()[0])
+            
+            #Add filename base, useful for NIR campaign, for which filename does not correspond to expnum
+            if self.args.campaign=='NIR':
+                self.args.nirfilename = group.filename.unique()[0].split("_st.")[0]
+            
             # Making output directories and filenames
             if self.args.out:
                 if not os.path.isdir(self.args.out):
@@ -137,8 +142,8 @@ class PipeLine(object):
             # Creating output name
             output_name_suffix = "r%s_%s_%s_rendered_template.des" % \
                                 (self.args.reqnum,self.args.target_site,self.args.pipeline)
-
             str_base = []
+            
             for i,k in enumerate(self.args.output_name_keys):
                 st = "%s" % getattr(self.args,k)
                 str_base.append(st)
@@ -146,8 +151,8 @@ class PipeLine(object):
             output_name = output_name_base + '_' + output_name_suffix
             output_path = os.path.join(self.args.output_dir,output_name)
             self.args.submitfile = output_path 
+           
             # Writing template
-            print(self.args.submit_template_path)
             if self.args.ignore_processed:
                 if self.args.cur.check_submitted(self.args.unitname,self.args.reqnum):
                     continue
@@ -420,13 +425,13 @@ class WideField(PipeLine):
         # Setting global parameters
         self.args = pipeargs.WideField().cmdline()
         self.args.pipeline = "widefield"
-        if 'N' in self.args.campaign:
+        if 'N' in self.args.campaign and self.args.campaign != 'NIR':
             self.args.desstat_pipeline = "firstcut"
         else:
             self.args.desstat_pipeline = "finalcut" 
 
         super(WideField,self).update_args(self.args)
-        self.args.output_name_keys = ['nite','expnum','band','filename']
+        self.args.output_name_keys = ['nite','expnum','band']#,'filename']
         self.args.cur = pipequery.WideField(self.args.db_section)
         if not self.args.propid:
             self.args.propid = self.args.cur.get_propids()
@@ -499,12 +504,11 @@ class WideField(PipeLine):
             self.args.dataframe = self.args.dataframe[~self.args.dataframe.expnum.isin(self.args.exclude_list)]
         
         # Update dataframe for each exposure and add band,nite if not exists
- #       try:
-        self.args.dataframe = self.args.cur.update_df(self.args)
-        self.args.dataframe = self.args.dataframe.fillna(False)
-#        except: 
-#            pass
-        exit()
+        try:
+            self.args.dataframe = self.args.cur.update_df(self.args)
+            self.args.dataframe = self.args.dataframe.fillna(False)
+        except: 
+            pass
         #try:
         #    if not self.args.dataframe:
         #        print( "No new exposures found in DB!")
@@ -512,7 +516,8 @@ class WideField(PipeLine):
         #except:
         #    print( "No exposures found in DB!")
         #    sys.exit(1)
-
+        print(self.args.dataframe)
+        
         if self.args.count:
             print("Data found in database:")
          
@@ -525,7 +530,6 @@ class WideField(PipeLine):
         if self.args.auto:
             self.args.dataframe = pd.merge(self.args.dataframe, p_tab, on=['expnum'], how='inner')
 
-        print(self.args.dataframe)
 
 class NitelyCal(PipeLine):
 

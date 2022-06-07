@@ -94,13 +94,13 @@ distortion = ${qa_file_prefix}_distortion
                 dirpat = se
                 rundir = config
             </scamp_config>
-            <scamp_ahead>
-                filetype = config
-                filename = ${camsym}${expnum:8}_${band}_r${reqnum}p${attnum:2}_scamp.ahead
-                dirpat = se
-                ops_enddir = aux
-                rundir = aux
-            </scamp_ahead>
+            #<scamp_ahead>
+            #    filetype = config
+            #    filename = ${camsym}${expnum:8}_${band}_r${reqnum}p${attnum:2}_scamp.ahead
+            #    dirpat = se
+            #    ops_enddir = aux
+            #    rundir = aux
+            #</scamp_ahead>
             <scamp_fullhead>
                 filetype = head_scamp_full
                 filepat = exposure
@@ -130,16 +130,18 @@ distortion = ${qa_file_prefix}_distortion
 
         <exec_1>
             execname = scamp
-            used = file.scamp_fullcat,file.scamp_ahead,file.scamp_config
+            used = file.scamp_fullcat,file.scamp_config #,file.scamp_ahead
             was_generated_by = file.scamp_fullhead,file.scamp_xml,file.scamp_qa
             <cmdline>
                 _01_scamp_fullcat = ${file.scamp_fullcat.fullname}
                 c = ${file.scamp_config.fullname}
                 ASTREF_BAND = DEFAULT
-                MOSAIC_TYPE = SAME_CRVAL
-                AHEADER_GLOBAL = ${file.scamp_ahead.fullname}
+                MOSAIC_TYPE = LOOSE
+                PROJECTION_TYPE = TPV
+                #AHEADER_GLOBAL = ${file.scamp_ahead.fullname}
                 ASTRINSTRU_KEY = DUMMY
-                AHEADER_SUFFIX = .aheadnoexist
+                STABILITY_TYPE = INSTRUMENT
+                #AHEADER_SUFFIX = .aheadnoexist
                 ASTREFMAG_LIMITS = 1,22
                 POSITION_MAXERR = 10.0
                 ASTREF_CATALOG = GAIA-DR2

@@ -1,33 +1,16 @@
 {% extends "supportwcl/generic_submit.des" %}
 {% block content %}
-<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/modnamepat.wcl>>
-<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/01-nir_rehab.wcl>>
-<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/02-pixcorrect.wcl>>
-<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/03-null-weight-pixcor.wcl>>
-<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/04a-create-scamp-cat.wcl>>
-<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/04b-split-scamp-ahead.wcl>>
-<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/05a-run-scamp.wcl>>
-<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/05b-update-scamp-headers.wcl>>
-<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/06a-mkbleedmask.wcl>>
-<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/06b-skycompress-mkbleedmask.wcl>>
-<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/07-N30-skycombine-mkbleedmask.wcl>> 
-<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/07-skycombine-mkbleedmask.wcl>> 
-<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/08a-skyfit.wcl>>
-<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/08b-skysub.wcl>>
-<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/08c-starflat.wcl>>
-<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/09a-null-weight-bkg.wcl>>
-<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/09b-create-hmmask-bkg.wcl>>
-<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/10a-hmmask.wcl>>
-<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/10b-immask.wcl>>
-<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/11-rowinterp-nullweight-immask.wcl>>
-<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/12a-create-psfex-cat.wcl>>
-<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/12b-run-psfex.wcl>>
-<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/13a-create-finalcut-catalog.wcl>>
-<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/14-finalcut-assess.wcl>>
-<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/15-mkpng.wcl>>
-<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/healpix.wcl>>
-#<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/ingest-healpix.wcl>>
-
+<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/{{ args.campaign }}/modulewcl/modnamepat.wcl>>
+<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/{{ args.campaign }}/modulewcl/01-nir_rehab.wcl>>
+<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/{{ args.campaign }}/modulewcl/03-null-weight-pixcor.wcl>>
+<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/{{ args.campaign }}/modulewcl/04a-create-scamp-catalog.wcl>>
+#<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/{{ args.campaign }}/modulewcl/04b-split-scamp-ahead.wcl>>
+<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/{{ args.campaign }}/modulewcl/05a-run-scamp.wcl>>
+<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/{{ args.campaign }}/modulewcl/05b-update-scamp-headers.wcl>>
+<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/{{ args.campaign }}/modulewcl/11-rowinterp-nullweight-immask.wcl>>
+<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/{{ args.campaign }}/modulewcl/12a-create-psfex-cat.wcl>>
+<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/{{ args.campaign }}/modulewcl/12b-run-psfex.wcl>>
+<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/{{ args.campaign }}/modulewcl/13a-create-finalcut-catalog.wcl>>
 
 {% if not args.labels %}
 label = ${nite} {% endif %}
@@ -36,7 +19,7 @@ expnum = {{ args.expnum }}
 band = {{ args.band }}
 nite = {{ args.nite }}
 desepoch = {{args.epoch_name}}
-filename = {{args.filename}}
+nirfilename = {{args.nirfilename}}
 
 {% if args.calnite %}
 calnite = {{ args.calnite }} 
@@ -56,7 +39,7 @@ ops_run_dir = {{ args.rundir }}
 {% else %}
 ops_run_dir = ${project}/${pipeline}/${campaign}/${basket}-r${reqnum}/${unitname}/p${attnum:2} 
 {% endif %}
-
+submit_run_dir = /home/madamow/submit/${ops_run_dir}
 save_run_vals = nite, camsym, band, expnum, jira_id
 
 GROUP_SUBMIT_ID = 1
@@ -65,7 +48,7 @@ blocklist = se
 
 <block>
    <se>
-        modulelist = nir_rehab
+        modulelist = nir-rehab,null-weight-pixcor,create-scamp-catalog,combine-scamp-cats,se-scamp,split-scamp-head,update-scamp-headers,rowinterp-nullweight-immask,create-psfex-catalog,run-psfex,create-finalcut-catalog
     </se>    
 </block>
 
@@ -89,29 +72,8 @@ calatt = {{args.cal_df[(args.cal_df.filetype=='cal_biascor')].attnum.values[0]}}
 {% if args.inputcals_file %}
 <<include {{args.inputcals_file}}>>
 {% else %}
-<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{args.campaign}}/modulewcl/inputs.wcl>>
+<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/{{args.campaign}}/modulewcl/inputs.wcl>>
 {% endif %}
 
-
-#####
-{% if args.band in ['u','VR'] %}
-<module>
-    <split-scamp-ahead>
-        <file>
-            <ahead_full>
-                filetype = config
-                {% if args.band in ['u'] %}
-                filename = ${confignite}_decam_pvmodel_${desepoch}_g.ahead
-                {% elif args.band in ['VR'] %}
-                filename = ${confignite}_decam_pvmodel_${desepoch}_r.ahead
-                {% endif %}
-                dirpat = se
-                ops_enddir = aux
-                rundir = config
-            </ahead_full>
-        </file>
-    </split-scamp-ahead>
-</module>
-{% endif %}
 
 {% endblock %}
