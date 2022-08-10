@@ -85,109 +85,144 @@ class PipeLine(object):
             args.submit_template_path = os.path.join(campaign_path,
                                         "{0}_submit_template.des".format(args.pipeline))
         args.rendered_template_path = []
+
+    def prepare_submission(self, name, group,columns):
+        # Setting jira parameters
+        self.args.reqnum, self.args.jira_parent= group['reqnum'].unique()[0],group['jira_parent'].unique()[0]
+
+        self.args.unitname = group['unitname'].unique()[0]
+        if self.args.pipeline != 'multiepoch' and  self.args.pipeline != 'photoz':
+            self.args.band = group['band'].unique()[0]
+        # Finding epoch of given data
+        if self.args.epoch:
+            self.args.epoch_name = self.args.epoch
+        else:
+            if self.args.pipeline == 'widefield':
+                firstexpnum = group['expnum'].unique()[0]
+                self.args.epoch_name = self.args.cur.find_epoch(firstexpnum)
+            elif self.args.pipeline != 'multiepoch' and self.args.pipeline != 'photoz':
+                firstexpnum = group['firstexp'].unique()[0]
+                self.args.epoch_name = self.args.cur.find_epoch(firstexpnum)
+            elif self.args.pipeline == 'prebpm':
+                firstexpnum = group['expnum'].unique()[0]
+                self.args.epoch_name = self.args.cur.find_epoch(firstexpnum)
+            else:
+                self.args.epoch_name = firstexpnum = None
+        if self.args.epoch_name:
+            self.args.cal_df = self.args.cur.get_cals_from_epoch(self.args.epoch_name,
+                                                                  band = self.args.band,
+                                                                  campaign = self.args.campaign)
+        # Adding column values to args
+        for c in columns:
+            setattr(self.args,c, group[c].unique()[0])
+
+        #Add filename base, useful for NIR campaign, for which filename does not correspond to expnum
+        if self.args.campaign=='NIR':
+            self.args.nirfilename = group.filename.unique()[0].split("_st.")[0]
+
+        # Making output directories and filenames
+        if self.args.out:
+            if not os.path.isdir(self.args.out):
+                os.makedirs(self.args.out)
+            self.args.output_dir = self.args.out
+        else:
+            req_dir = 'r%s' % self.args.reqnum
+            self.args.output_dir = os.path.join(self.args.pipebox_work,req_dir)
+            if not os.path.isdir(self.args.output_dir):
+                os.makedirs(self.args.output_dir)
+            
+        # Creating output name
+        output_name_suffix = "r%s_%s_%s_rendered_template.des" % \
+                            (self.args.reqnum,self.args.target_site,self.args.pipeline)
+        str_base = []
+
+        for i,k in enumerate(self.args.output_name_keys):
+            st = "%s" % getattr(self.args,k)
+            str_base.append(st)
+        output_name_base = '_'.join(str_base)
+        output_name = output_name_base + '_' + output_name_suffix
+        output_path = os.path.join(self.args.output_dir,output_name)
+        self.args.submitfile = output_path
+
+
+        # Writing template
+        pipeutils.write_template(self.args.submit_template_path,output_path,self.args)
+        self.args.rendered_template_path.append(output_path)
+        if not self.args.savefiles:
+            #super(self.__class__,self).submit(self.args)
+
+            # Make comment in JIRA
+            if not self.args.ignore_jira:
+                connected = False
+                while not connected:
+                    num_retry = 1
+                    try:
+                        con=jira_utils.get_con(self.args.jira_section)
+                        connected = True
+                    except:
+                        print("JIRA Connection Error...Retry #{num}".format(num=num_retry))
+                        time.sleep(10)
+                        connected = False
+                        if num_retry == 4:
+                            print("Reached 4 JIRA connection attempts. Quitting...")
+                            break
+                        num_retry += 1
+
+                if not jira_utils.does_comment_exist(con,reqnum=self.args.reqnum):
+                    jira_utils.make_comment(con,datetime=datetime.datetime.now(),
+                                            reqnum=self.args.reqnum)
         
     def make_templates(self,columns=[],groupby=None):
         """ Loop through dataframe and write submitfile for each exposures"""
-        # Updating args for each row
-        default_submit_site = self.args.target_site
-        
-        for name, group in self.args.dataframe.groupby(by=groupby, sort=False):
-            # Setting jira parameters
-            self.args.reqnum, self.args.jira_parent= group['reqnum'].unique()[0],group['jira_parent'].unique()[0]
-            if self.args.priority_site is not None and group['priority'].unique()[0]==1:
-                self.args.target_site = self.args.priority_site
-            else:
-                self.args.target_site = default_submit_site
-            
-            self.args.unitname = group['unitname'].unique()[0]
-            if self.args.pipeline != 'multiepoch' and  self.args.pipeline != 'photoz':
-                self.args.band = group['band'].unique()[0]
-            # Finding epoch of given data
-            if self.args.epoch:
-                self.args.epoch_name = self.args.epoch
-            else:
-                if self.args.pipeline == 'widefield':
-                    firstexpnum = group['expnum'].unique()[0]
-                    self.args.epoch_name = self.args.cur.find_epoch(firstexpnum)
-                elif self.args.pipeline != 'multiepoch' and self.args.pipeline != 'photoz':
-                    firstexpnum = group['firstexp'].unique()[0]
-                    self.args.epoch_name = self.args.cur.find_epoch(firstexpnum)
-                elif self.args.pipeline == 'prebpm':
-                    firstexpnum = group['expnum'].unique()[0]
-                    self.args.epoch_name = self.args.cur.find_epoch(firstexpnum)
-                else:
-                    self.args.epoch_name = firstexpnum = None
-            if self.args.epoch_name:
-                self.args.cal_df = self.args.cur.get_cals_from_epoch(self.args.epoch_name,
-                                                                      band = self.args.band,
-                                                                      campaign = self.args.campaign)
-            # Adding column values to args
-            for c in columns:
-                setattr(self.args,c, group[c].unique()[0])
-            
-            #Add filename base, useful for NIR campaign, for which filename does not correspond to expnum
-            if self.args.campaign=='NIR':
-                self.args.nirfilename = group.filename.unique()[0].split("_st.")[0]
-            
-            # Making output directories and filenames
-            if self.args.out:
-                if not os.path.isdir(self.args.out):
-                    os.makedirs(self.args.out)
-                self.args.output_dir = self.args.out
-            else:
-                req_dir = 'r%s' % self.args.reqnum
-                self.args.output_dir = os.path.join(self.args.pipebox_work,req_dir)
-                if not os.path.isdir(self.args.output_dir):
-                    os.makedirs(self.args.output_dir)
-            # Creating output name
-            output_name_suffix = "r%s_%s_%s_rendered_template.des" % \
-                                (self.args.reqnum,self.args.target_site,self.args.pipeline)
-            str_base = []
-            
-            for i,k in enumerate(self.args.output_name_keys):
-                st = "%s" % getattr(self.args,k)
-                str_base.append(st)
-            output_name_base = '_'.join(str_base)
-            output_name = output_name_base + '_' + output_name_suffix
-            output_path = os.path.join(self.args.output_dir,output_name)
-            self.args.submitfile = output_path 
-           
-            # Writing template
-            if self.args.ignore_processed:
-                if self.args.cur.check_submitted(self.args.unitname,self.args.reqnum):
-                    continue
-                else:
-                    pipeutils.write_template(self.args.submit_template_path,output_path,self.args)
-                    self.args.rendered_template_path.append(output_path)
-                    if not self.args.savefiles:
-                        super(self.__class__,self).submit(self.args)
-            else: 
-                pipeutils.write_template(self.args.submit_template_path,output_path,self.args)
-                self.args.rendered_template_path.append(output_path)
-                if not self.args.savefiles:
-                    super(self.__class__,self).submit(self.args)
-                 
-                    # Make comment in JIRA
-                    if not self.args.ignore_jira:
-                        connected = False
-                        while not connected:
-                            num_retry = 1
-                            try:
-                                con=jira_utils.get_con(self.args.jira_section)
-                                connected = True
-                            except:
-                                print("JIRA Connection Error...Retry #{num}".format(num=num_retry))
-                                time.sleep(10)
-                                connected = False
-                                if num_retry == 4:
-                                    print("Reached 4 JIRA connection attempts. Quitting...")
-                                    break
-                                num_retry += 1
-                                
 
-                        if not jira_utils.does_comment_exist(con,reqnum=self.args.reqnum):
-                            jira_utils.make_comment(con,datetime=datetime.datetime.now(),
-                                                        reqnum=self.args.reqnum)
+           
+        if self.args.ignore_processed:
+            # Check what was processed and drop it from input dataframe
+            for uname, gdf in self.args.dataframe.groupby(by=groupby, sort=False):
+                if self.args.cur.check_submitted(uname,gdf['reqnum'].unique()[0]):
+                    print("Unit %s is already processd under reqnum=%i and will be ignored" % (uname, int(gdf['reqnum'].unique()[0])))
+                    self.args.dataframe = self.args.dataframe[self.args.dataframe['unitname']!=uname]
+
+        runsites = self.args.target_site.split(",")
+        qsizes = self.args.queue_size.split(",")
+        
+        if self.args.total_queue:
+            desstat_user = None
+            desstat_reqnum = None
+        else:
+            desstat_user = self.args.jira_user
+            desstat_reqnum = self.args.reqnum        
+
+        # Updating args for each row
+        its = 0 # index for the first priority site
+        for uname, gdf in self.args.dataframe.groupby(by=groupby, sort=False):
+            # Check if unit was already processed
+
+            # Check if there is a spot in a queue to submit
+            submitted = False
+            while not submitted:
+                if pipeutils.less_than_queue(pipeline=self.args.desstat_pipeline,reqnum=desstat_reqnum,
+                                         user=desstat_user,queue_size=qsizes[its],runsite=runsites[its]):
+                    self.args.target_site = runsites[its]
+                    super(self.__class__,self).prepare_submission(uname, gdf, columns)
+                    if not self.args.savefiles: 
+                        self.args.unitname,self.args.attnum = pipeutils.submit_command(self.args.submitfile,wait=float(self.args.wait))
+                    submitted = True
+                    pipeutils.rename_file(self.args)
+                else:
+                    # The queue is full
+                    print("The %s is full." % runsites[its] )
+                    if len(runsites) > 1:
+                        if runsites[its] != runsites[-1]:
+                            its = its+1
+                        else:
+                            its=0
+                            print("Sleeping for 10 minutes before checking queues again")
+                            time.sleep(600)
+                    else:
+                        print("Sleeping for 10 minutes before checking queues again")
+                        time.sleep(600)
+           
 
         if self.args.auto:
             if not self.args.rendered_template_path: 
@@ -284,30 +319,6 @@ class PipeLine(object):
                                                eups_stack=args.eups_stack,
                                                submit_file=bash_script_path) 
 
-    def submit(self,args):
-        # If less than queue size submit exposure
-        if args.total_queue:
-            desstat_user = None
-            desstat_reqnum = None
-        else:
-            desstat_user = args.jira_user
-            desstat_reqnum = args.reqnum
-        if pipeutils.less_than_queue(pipeline=args.desstat_pipeline,reqnum=desstat_reqnum,
-                                     user=desstat_user,queue_size=args.queue_size):
-            args.unitname,args.attnum = pipeutils.submit_command(args.submitfile,wait=float(args.wait))
-        else:
-            while not pipeutils.less_than_queue(pipeline=args.desstat_pipeline, reqnum=desstat_reqnum,
-                                                user=desstat_user,queue_size=args.queue_size):
-                if self.args.auto:
-                    print("Queue full. Exiting...")
-                    sys.exit(0)    
-                else:
-                    time.sleep(30)
-            else:
-                args.unitname,args.attnum = pipeutils.submit_command(args.submitfile,wait=float(args.wait))
-    
-        # Update submitfile name with attnum
-        pipeutils.rename_file(args)
 
 class SuperNova(PipeLine):
 
