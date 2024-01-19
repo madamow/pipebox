@@ -15,7 +15,11 @@ class PipeQuery(object):
         else:
             self.schema = 'PROD'
         self.dbh = dbh
-        self.cur = cur 
+        self.cur = cur
+    
+    def tickets_info(self, section):
+        query = "select issue_key, parent_issue, reporter, summary from madamow_decade.jira_records"
+        
     
     def find_epoch(self,exposure, decade=False):
         """ Return correct epoch name for exposure in order to use
