@@ -10,7 +10,11 @@
 <<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/05b-update-scamp-headers.wcl>>
 <<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/06a-mkbleedmask.wcl>>
 <<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/06b-skycompress-mkbleedmask.wcl>>
+{% if args.epoch_name in ['SVE1','SVE2','Y1E1','Y4E2','Y5E1','Y5E2','Y6','Y11'] and args.band not in ['u','VR'] %}
 <<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/07-N30-skycombine-mkbleedmask.wcl>> 
+{% else %}
+<<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/07-skycombine-mkbleedmask.wcl>> 
+{% endif %}
 <<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/08a-skyfit.wcl>>
 <<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/08b-skysub.wcl>>
 <<include {{ args.pipebox_dir }}/templates/pipelines/widefield/DECADE/{{ args.campaign }}/modulewcl/08c-starflat.wcl>>

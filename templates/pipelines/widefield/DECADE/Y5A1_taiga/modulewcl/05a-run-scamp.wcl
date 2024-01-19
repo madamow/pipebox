@@ -140,7 +140,8 @@ distortion = ${qa_file_prefix}_distortion
                 AHEADER_GLOBAL = ${file.scamp_ahead.fullname}
                 ASTRINSTRU_KEY = DUMMY
                 AHEADER_SUFFIX = .aheadnoexist
-                ASTREFMAG_LIMITS = 1,22
+                ASTREFMAG_LIMITS = 1,22 # default setting
+                # ASTREFMAG_LIMITS = 15,18 # setting for Antila2 exposures
                 POSITION_MAXERR = 10.0
                 ASTREF_CATALOG = GAIA-DR2
                 REF_SERVER = vizier.u-strasbg.fr,vizier.nao.ac.jp,vizier.cfa.harvard.edu
@@ -151,7 +152,7 @@ distortion = ${qa_file_prefix}_distortion
                 CHECKPLOT_NAME = ${astr_pixerror1d},${astr_referror1d},${fgroups},${astr_referror2d},${astr_refsysmap},${distortion}
                 NTHREADS = 1
                 VERBOSE_TYPE = FULL
-                FLAGS_MASK = 0x00fc 
+#                FLAGS_MASK = 0x00fc 
             </cmdline>
         </exec_1> 
     </se-scamp>
