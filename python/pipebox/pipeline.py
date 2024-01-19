@@ -88,7 +88,8 @@ class PipeLine(object):
 
     def prepare_submission(self, name, group,columns):
         # Setting jira parameters
-        self.args.reqnum, self.args.jira_parent= group['reqnum'].unique()[0],group['jira_parent'].unique()[0]
+        if not self.args.ignore_jira:
+            self.args.reqnum, self.args.jira_parent= group['reqnum'].unique()[0],group['jira_parent'].unique()[0]
 
         self.args.unitname = group['unitname'].unique()[0]
         if self.args.pipeline != 'multiepoch' and  self.args.pipeline != 'photoz':
@@ -99,19 +100,20 @@ class PipeLine(object):
         else:
             if self.args.pipeline == 'widefield':
                 firstexpnum = group['expnum'].unique()[0]
-                self.args.epoch_name = self.args.cur.find_epoch(firstexpnum)
+                self.args.epoch_name = self.args.cur.find_epoch(firstexpnum, decade=self.args.decade)
             elif self.args.pipeline != 'multiepoch' and self.args.pipeline != 'photoz':
                 firstexpnum = group['firstexp'].unique()[0]
-                self.args.epoch_name = self.args.cur.find_epoch(firstexpnum)
+                self.args.epoch_name = self.args.cur.find_epoch(firstexpnum, decade=self.args.decade)
             elif self.args.pipeline == 'prebpm':
                 firstexpnum = group['expnum'].unique()[0]
-                self.args.epoch_name = self.args.cur.find_epoch(firstexpnum)
+                self.args.epoch_name = self.args.cur.find_epoch(firstexpnum, decade=self.args.decade)
             else:
                 self.args.epoch_name = firstexpnum = None
         if self.args.epoch_name:
             self.args.cal_df = self.args.cur.get_cals_from_epoch(self.args.epoch_name,
                                                                   band = self.args.band,
-                                                                  campaign = self.args.campaign)
+                                                                  campaign = self.args.campaign,
+                                                                  decade=self.args.decade)
         # Adding column values to args
         for c in columns:
             setattr(self.args,c, group[c].unique()[0])
@@ -217,11 +219,11 @@ class PipeLine(object):
                             its = its+1
                         else:
                             its=0
-                            print("Sleeping for 10 minutes before checking queues again")
-                            time.sleep(600)
+                            print("Sleeping for 1 minute(s) before checking queues again")
+                            time.sleep(60)
                     else:
-                        print("Sleeping for 10 minutes before checking queues again")
-                        time.sleep(600)
+                        print("Sleeping for 1 minute(s) before checking queues again")
+                        time.sleep(60)
            
 
         if self.args.auto:
@@ -528,7 +530,7 @@ class WideField(PipeLine):
         #    print( "No exposures found in DB!")
         #    sys.exit(1)
         print(self.args.dataframe)
-        
+#        exit()     
         if self.args.count:
             print("Data found in database:")
          

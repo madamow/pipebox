@@ -17,10 +17,14 @@ class PipeQuery(object):
         self.dbh = dbh
         self.cur = cur 
     
-    def find_epoch(self,exposure):
+    def find_epoch(self,exposure, decade=False):
         """ Return correct epoch name for exposure in order to use
             appropriate calibrations file"""
-        epoch_query = "select name,minexpnum,maxexpnum from PROD.ops_epoch"
+        
+        if decade: 
+             epoch_query = "select name,minexpnum,maxexpnum from DECADE.ops_epoch"
+        else:
+             epoch_query = "select name,minexpnum,maxexpnum from PROD.ops_epoch"
         self.cur.execute(epoch_query)
         epochs = self.cur.fetchall()
 
@@ -42,18 +46,23 @@ class PipeQuery(object):
             name = [name for name,diff in diff_list if diff == min_of_min_diff][0]
             return name
 
-    def get_cals_from_epoch(self, epoch,band = None,campaign= None):
+    def get_cals_from_epoch(self, epoch, band=None, campaign=None, decade=False):
         """ Query to return the unitname,reqnum,attnum of epoch-based calibrations."""
         count_for_campaign = "select count(*) from PROD.ops_epoch_inputs_per_band where name='{epoch}' \
                               and campaign='{c}'".format(epoch=epoch,c=campaign)
         self.cur.execute(count_for_campaign)
         count = self.cur.fetchall()[0][0]
+        if decade:
+            tname = 'DECADE.ops_epoch_inputs_per_band'
+        else:
+            tname = 'PROD.ops_epoch_inputs_per_band' 
+       
         if int(count) == 0:
-            campaign_query = "select max(campaign) from PROD.ops_epoch_inputs_per_band where name='{epoch}'".format(epoch=epoch)
+            campaign_query = "select max(campaign) from {tname} where name='{epoch}'".format(epoch=epoch, tname=tname)
             self.cur.execute(campaign_query)
             campaign = self.cur.fetchall()[0][0]
-        query = "select * from PROD.ops_epoch_inputs_per_band where name='{epoch}'  \
-                 and campaign = '{c}' and (band = '{band}' or band is null)".format(epoch=epoch,c=campaign,band = band)
+        query = "select * from {tname} where name='{epoch}'  \
+                 and campaign = '{c}' and (band = '{band}' or band is null)".format(epoch=epoch, c=campaign, band=band, tname=tname)
         self.cur.execute(query)
         data = pd.DataFrame(self.cur.fetchall(),
                columns=['name','filetype','reqnum','unitname','attnum','band','campaign','filename',
@@ -158,7 +167,7 @@ class PipeQuery(object):
             if len(unitnames) < 1000:
                 query_db = False
     
-            submitted = "select distinct unitname,attnum,status from pfw_attempt a, task t, pfw_request r where r.reqnum=a.reqnum and t.id=a.task_id and r.project='%s' and unitname in ('%s')" % (project,"','".join(unitnames))
+            submitted = "select distinct unitname,attnum,status from pfw_attempt a, task t, pfw_request r where r.reqnum=a.reqnum and t.id=a.task_id and r.project in ('DEC','%s') and unitname in ('%s')" % (project,"','".join(unitnames))
             self.cur.execute(submitted)
             failed_query = self.cur.fetchall()
         
@@ -171,7 +180,7 @@ class PipeQuery(object):
                 df = df.fillna(-99)
 
                 for u in df['unitname'].unique():
-                    expnum = str(int(u.split('D0')[1]))
+                    expnum = str(int(u.split('D')[1]))
                     statuses = list(df[(df.unitname == u)]['status'].values)
                     failed_atts = [i for i in statuses if i >=1]
                     if 0 in statuses:
@@ -531,7 +540,7 @@ class WideField(PipeQuery):
         while query_db:
             # Get a set of exposures
             query = "select o.expnum, o.propid from ops_auto_queue o, exposure e"
-            query+= " where o.processed=0 and o.expnum=e.expnum and e.band in ('g','r','i','z')  offset %i rows fetch next 1000 rows only" % (i*1000)
+            query+= " where o.processed=0 and e.nite>20230101 and o.expnum=e.expnum and e.band in ('g','r','i','z') offset %i rows fetch next 1000 rows only" % (i*1000)
             self.cur.execute(query)
 
             temp_df = pd.DataFrame(self.cur.fetchall(), columns=['expnum','propid'])
@@ -545,10 +554,9 @@ class WideField(PipeQuery):
             unitnames = ['D'+str(e).zfill(8) for e  in temp_df.expnum.values]
 
             submitted = "select unitname,status from pfw_attempt a, task t, pfw_request r where r.reqnum=a.reqnum "
-            submitted += "and t.id=a.task_id and r.project='%s' and unitname in ('%s')" % (project,"','".join(unitnames))
+            submitted += "and t.id=a.task_id and r.project like '%s' and unitname in ('%s')" % (project+"%","','".join(unitnames))
             self.cur.execute(submitted)
             failed_query = self.cur.fetchall()
-
             if len(failed_query) > 0:
                 df_fails = pd.DataFrame(failed_query, columns=['unitname','status'])
                 df_fails = df_fails.fillna(-99)
@@ -582,13 +590,14 @@ class WideField(PipeQuery):
         
         df.expnum = df.expnum.apply(int)
         df.expnum = df.expnum.apply(str)
-        df=df[df['attnum']==0]
+        #df=df[df['attnum']==0]
         df = df.sort_values(by=['priority', 'attnum', 'expnum'])
-
+        #df =df[df['priority']==1]
         if df.shape[0]==0:
             print("List of exposures is empty.Nothing to do")
             exit()
         
+        df = df.drop_duplicates()
         return df[['expnum', 'priority']].head(1000) 
         # 90 works better for delve processing and crontab
         # it allows to rfresh a list of exposures every one hour - about 90-95 exposures can be rendered and submited in 1 hr time span
