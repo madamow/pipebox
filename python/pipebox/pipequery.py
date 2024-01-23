@@ -15,8 +15,19 @@ class PipeQuery(object):
         else:
             self.schema = 'PROD'
         self.dbh = dbh
-        self.cur = cur 
-    
+        self.cur = cur
+
+
+    def get_tickets(decade=False):
+        query = "select issue_key, summary, parent_issue, reporter from decade.jira_records"
+
+        #add some where statement?
+        self.cur.execute(epoch_query)
+        tickets = pd.DataFrame(self.cur.fetchall(), 
+                            columns=['issue_key', 'summary', 'parent_issue', 'reporter'])
+        return tickets
+        
+
     def find_epoch(self,exposure, decade=False):
         """ Return correct epoch name for exposure in order to use
             appropriate calibrations file"""

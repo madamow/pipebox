@@ -5,7 +5,7 @@ import time
 import pandas as pd
 import numpy as np
 import string
-from pipebox import pipequery,pipeargs,pipeutils,jira_utils,nitelycal_lib
+from pipebox import pipequery,pipeargs,pipeutils,jira_utils,nitelycal_lib, reqnum_utils
 
 class PipeLine(object):
     # Setup key arguments and environment here instead of write_*.sh
@@ -266,6 +266,12 @@ class PipeLine(object):
 
             if args.ignore_jira:
                 new_reqnum,new_jira_parent = (reqnum,jira_parent)
+            elif args.assign_reqnum:
+                new_reqnum, new_jira_parent = reqnum_utils.get_ticket(args.jira_section,args.jira_user,
+                                              description=args.jira_description,
+                                              summary=jira_summary,
+                                              ticket=reqnum,parent=jira_parent,
+                                              use_existing=True)
             else:
                 # Create JIRA ticket
                 new_reqnum,new_jira_parent = jira_utils.create_ticket(args.jira_section,args.jira_user,
