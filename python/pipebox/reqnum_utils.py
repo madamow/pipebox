@@ -71,12 +71,9 @@ def create_ticket(jira_user, ticket=None, parent=None,
     if parent and ticket:
         pass
     else:
-        # get data from database
+        # get ticket tree from database
         pipeline = pipequery.PipeQuery('db-decade')
-
         jtickets = pipeline.get_tickets()
-        print(jtickets)
-        exit()        
         
     if not summary:
         args_dict['summary'] = "%s's Processing run" % jira_user
@@ -95,7 +92,10 @@ def create_ticket(jira_user, ticket=None, parent=None,
 
         # Use ticket specified and find parent key
         try:
-            jira_id = con.get_issue(ticket).fields.parent.key
+            # jira_id='DES-0000' it is a parent key
+            jira_id = jtickets[jtickets['issue_key']==ticket]
+            print(jira_id)
+            exit()
         except:
             jira_id = reqnum
         return (reqnum,jira_id)
@@ -111,6 +111,7 @@ def create_ticket(jira_user, ticket=None, parent=None,
         else:
             reqnum,jira_id = create_subticket(con,args_dict)
             return (reqnum,jira_id)
+
     if not ticket and not parent:
         parent_summary = "%s's Processing Tickets" % jira_user
         parent_description = "Parent ticket for %s's processing tests." % jira_user
