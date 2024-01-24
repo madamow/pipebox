@@ -18,11 +18,11 @@ class PipeQuery(object):
         self.cur = cur
 
 
-    def get_tickets(decade=False):
-        query = "select issue_key, summary, parent_issue, reporter from decade.jira_records"
+    def get_tickets(self):
+        ticket_query = "select issue_key, summary, parent_issue, reporter from jira_records"
 
         #add some where statement?
-        self.cur.execute(epoch_query)
+        self.cur.execute(ticket_query)
         tickets = pd.DataFrame(self.cur.fetchall(), 
                             columns=['issue_key', 'summary', 'parent_issue', 'reporter'])
         return tickets
