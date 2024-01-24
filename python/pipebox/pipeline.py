@@ -53,7 +53,6 @@ class PipeLine(object):
         # If ngix -- cycle trough server's list
         if self.args.nginx:
             self.args.nginx_server = pipeutils.cycle_list_index(index,['desnginx', 'dessub'])
-    
         if args.configfile: 
             if '/' in args.configfile:
                 pass
@@ -243,16 +242,16 @@ class PipeLine(object):
         except:
             print("Must specify input data!")
             sys.exit(1)
-        
         args.dataframe['user'] = args.jira_user
         
         group = args.dataframe.groupby(by=[groupby])
+
         for name,vals in group:
             # create JIRA ticket per nite and add jira_id,reqnum to dataframe
             index = args.dataframe[args.dataframe[groupby] == name].index
           
             if args.jira_summary:
-                jira_summary = args.jira_summary 
+                jira_summary = args.jira_summary
             else:
                 jira_summary = str(name)
             if args.reqnum:
@@ -267,10 +266,10 @@ class PipeLine(object):
             if args.ignore_jira:
                 new_reqnum,new_jira_parent = (reqnum,jira_parent)
             elif args.assign_reqnum:
-                new_reqnum, new_jira_parent = reqnum_utils.get_ticket(args.jira_section,args.jira_user,
-                                              description=args.jira_description,
+                new_reqnum, new_jira_parent = reqnum_utils.create_ticket(args.jira_user,
                                               summary=jira_summary,
-                                              ticket=reqnum,parent=jira_parent,
+                                              ticket=reqnum,
+                                              parent=jira_parent,
                                               use_existing=True)
             else:
                 # Create JIRA ticket
