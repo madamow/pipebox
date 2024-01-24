@@ -59,28 +59,35 @@ def create_ticket(jira_user, ticket=None, parent=None,
     or ticket specified, will create a parent and then a subticket. Parent and ticket
     should be specified as the number, e.g., 1515. Returns tuple (reqnum,jira_id):
     (1572,DESOPS-1515)"""
-    args_dict = {'jira_section':jira_section,'jira_user':jira_user,
+    args_dict = {'jira_user':jira_user,
                  'parent':parent,'ticket':ticket,'summary':summary,
-                 'description':description,'use_existing':use_existing,
+                 'use_existing':use_existing,
                  'project':project}
     
     
-    existing_tickets = pipequey.get_tickets(decade=True)
     #For coadds - files will go under one reqnum is summary and parent are provided
 
     # Check if parent and ticket provided in cmd line are in database. If they are, do nothing
     if parent and ticket:
         pass
     else:
+        # get data from database
+        pipeline = pipequery.PipeQuery('db-decade')
+
+        jtickets = pipeline.get_tickets()
+        print(jtickets)
+        exit()        
         
     if not summary:
         args_dict['summary'] = "%s's Processing run" % jira_user
+
     if parent and ticket:
         ticket = project + '-' + ticket
         parent = project + '-' + parent
         args_dict['parent'],args_dict['ticket'] = parent,ticket
         # Return what was given
         return (ticket.split('-')[1],parent)
+
     if ticket and not parent:
         ticket = project + '-' + ticket
         args_dict['ticket'] = ticket
