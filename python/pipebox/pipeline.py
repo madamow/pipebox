@@ -151,9 +151,8 @@ class PipeLine(object):
         self.args.rendered_template_path.append(output_path)
         if not self.args.savefiles:
             #super(self.__class__,self).submit(self.args)
-
             # Make comment in JIRA
-            if not self.args.ignore_jira:
+            if  self.args.ignore_jira==False and self.args.assign_reqnum==False:
                 connected = False
                 while not connected:
                     num_retry = 1
