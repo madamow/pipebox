@@ -21,7 +21,7 @@ else:
         widefield.ticket(args,groupby='user')
     else:
         widefield.ticket(args,groupby='nite')
-exit()
+
 # write submit files and submit if necessary
 # columns should only be values that change per submit (groupby)
 print("Creating templates and submitting (if specified)...")
