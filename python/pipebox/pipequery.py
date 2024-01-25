@@ -26,6 +26,18 @@ class PipeQuery(object):
         tickets = pd.DataFrame(self.cur.fetchall(), 
                             columns=['issue_key', 'summary', 'parent_issue', 'reporter'])
         return tickets
+    
+    def add_ticket(self, dict, add_parent=False):
+        print(dict)
+        if not add_parent:
+            insert_query = "insert into jira_records (issue_key, summary, parent_issue, reporter) "
+            insert_query += f"values ('{dict['ticket']}', '{dict['summary']}', '{dict['parent']}', '{dict['jira_user']}')"
+        else:
+            insert_query = "insert into jira_records (issue_key, summary, parent_issue, reporter) "
+            insert_query += f"values ('Null', '{dict['summary']}', '{dict['parent']}', '{dict['jira_user']}')"
+        self.cur.execute(insert_query)
+        self.dbh.commit()
+        exit()
         
 
     def find_epoch(self,exposure, decade=False):
