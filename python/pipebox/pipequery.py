@@ -33,10 +33,8 @@ class PipeQuery(object):
             insert_query += f"values ('{dict['ticket']}', '{dict['summary']}', '{dict['parent']}', '{dict['jira_user']}')"
         else:
             insert_query += f"values ('Null', '{dict['parent_summary']}', '{dict['parent']}', '{dict['jira_user']}')"
-        print(insert_query)
-        #self.cur.execute(insert_query)
-        #self.dbh.commit()
-        exit()
+        self.cur.execute(insert_query)
+        self.dbh.commit()
         
 
     def find_epoch(self,exposure, decade=False):
