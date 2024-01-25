@@ -16,17 +16,6 @@ def get_jira_user(section='jira-desdm',services_file=None):
     except:
         return os.environ['USER']
 
-def get_reqnum_from_nite(parent,nite):
-    """Used for auto-submit for firstcut. If nite exists under parent, grab the reqnum to be used in resubmit_failed."""
-    con = get_con('jira-desdm')
-    parent = 'DESOPS-' + str(parent)
-    issues, count = con.search_for_issue(parent, nite)
-    if count != 0:
-        reqnum = str(issues[0].key).split('-')[1]
-        jira_id = issues[0].fields.parent.key
-        return reqnum
-    else:
-        return None
 
 def use_existing_ticket(jtickets, dict):
     """Looks to see if ticket exists. If it does it will use it instead
@@ -89,7 +78,6 @@ def create_parent_subticket(jtickets, dict, use_existing):
         return (reqnum,jira_id)
 
 
-
 def create_ticket(jira_user, ticket=None, parent=None,
                   summary=None, use_existing=False, project='DESOPS'):
     """ Create a ticket for use in framework processing. If parent is specified, 
@@ -101,9 +89,6 @@ def create_ticket(jira_user, ticket=None, parent=None,
                  'parent':parent,'ticket':ticket,'summary':summary,
                  'use_existing':use_existing,
                  'project':project}
-    
-    
-    #For coadds - files will go under one reqnum is summary and parent are provided
 
     # Check if parent and ticket provided in cmd line are in database. If they are, do nothing
     if parent and ticket:
@@ -130,7 +115,6 @@ def create_ticket(jira_user, ticket=None, parent=None,
 
         # Use ticket specified and find parent key
         try:
-            # jira_id='DES-0000' it is a parent key
             jira_record = jtickets[jtickets['issue_key']==ticket]
             jira_id = jira_record.parent_issue.item()
         except:
