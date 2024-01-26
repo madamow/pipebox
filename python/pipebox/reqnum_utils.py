@@ -118,10 +118,10 @@ def create_ticket(jira_user, ticket=None, parent=None,
         reqnum = ticket.split('-')[1]
 
         # Use ticket specified and find parent key
-        try:
-            jira_record = jtickets[jtickets['issue_key'] == ticket]
+        jira_record = jtickets[jtickets['issue_key'] == ticket]
+        if jira_record.shape[0] > 0:
             jira_id = jira_record.parent_issue.item()
-        except:
+        else:
             jira_id = reqnum
         return (reqnum, jira_id)
 
