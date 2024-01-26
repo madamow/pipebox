@@ -1,18 +1,18 @@
 import os
-import configparser as ConfigParser
+from configparser import NoOptionError, NoSectionError, ConfigParser
 from pipebox import pipequery
 import pandas as pd
 
 
 def get_jira_user(section='jira-desdm', services_file=None):
-    Config = ConfigParser.ConfigParser()
+    Config = ConfigParser()
     if not services_file:
         services_file = os.path.join(os.environ['HOME'], '.desservices.ini')
     try:
         Config.read(services_file)
         jirauser = Config.get(section, 'user')
         return jirauser
-    except (NoSectionError, KeyError):
+    except (NoSectionError, KeyError, NoOptionError):
         return os.environ['USER']
 
 
