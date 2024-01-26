@@ -12,7 +12,7 @@ def get_jira_user(section='jira-desdm', services_file=None):
         Config.read(services_file)
         jirauser = Config.get(section, 'user')
         return jirauser
-    except:
+    except (NoSectionError, KeyError):
         return os.environ['USER']
 
 
