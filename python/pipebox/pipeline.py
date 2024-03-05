@@ -244,7 +244,6 @@ class PipeLine(object):
         args.dataframe['user'] = args.jira_user
         
         group = args.dataframe.groupby(by=[groupby])
-
         for name,vals in group:
             # create JIRA ticket per nite and add jira_id,reqnum to dataframe
             index = args.dataframe[args.dataframe[groupby] == name].index
@@ -257,6 +256,7 @@ class PipeLine(object):
                 reqnum = args.reqnum
             else:
                 reqnum = None
+
             if args.jira_parent:
                 jira_parent = args.jira_parent
             else:
@@ -277,7 +277,6 @@ class PipeLine(object):
                                               summary=jira_summary,
                                               ticket=reqnum,parent=jira_parent,
                                               use_existing=True)
-            
             # Update dataframe with reqnum, jira_id
             # If row exists replace value, if not insert new column/value
             try:
@@ -285,12 +284,12 @@ class PipeLine(object):
             except:
                args.dataframe.insert(len(args.dataframe.columns),'reqnum',None)
                args.dataframe.loc[index,'reqnum'] = new_reqnum
+            args.dataframe['reqnum'] = args.dataframe['reqnum'].astype(int)
             try:
                args.dataframe.loc[index,('jira_parent')] = new_jira_parent
             except:
                args.dataframe.insert(len(args.dataframe.columns),'jira_parent',None)
                args.dataframe.loc[index,'jira_parent'] = new_jira_parent
-
         return args.dataframe        
     
     def auto(self,args):
